@@ -51,7 +51,7 @@ public class DatabaseHelper extends SQLiteOpenHelper
 
     }
 
-    public List<Bitmap> getImage(int i)
+    public List<Bitmap> getImage()
     {
 
         String qu = "select * from "+ TABLE_NAME ;

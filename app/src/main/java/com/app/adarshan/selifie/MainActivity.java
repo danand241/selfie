@@ -2,6 +2,7 @@ package com.app.adarshan.selifie;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -26,40 +27,14 @@ public class MainActivity extends AppCompatActivity
     public static final int CAMERA_REQUEST = 10;
     public static int TIMES = 1;
     private FancyButton takePicture;
-    private LoginButton loginButton;
-    private CallbackManager callbackManager;
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        FacebookSdk.sdkInitialize(getApplicationContext());
+
         setContentView(R.layout.activity_main);
 
-        AppEventsLogger.activateApp(this);
 
-        callbackManager = CallbackManager.Factory.create();
-        loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions("email");
-        // If using in a fragment
-        // Other app specific specialization
-
-        // Callback registration
-        loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                // App code
-            }
-
-            @Override
-            public void onCancel() {
-                // App code
-            }
-
-            @Override
-            public void onError(FacebookException exception) {
-                // App code
-            }
-        });
         takePicture = (FancyButton) findViewById(R.id.take_image);
 
         takePicture.setOnClickListener(new View.OnClickListener()
@@ -86,15 +61,23 @@ public class MainActivity extends AppCompatActivity
     private void takeImage(View v)
     {
         UserLocalStore userLocalStore = new UserLocalStore(this);
-        if(userLocalStore.getTimes() == 2) {
-            startActivity(new Intent(this, ImageActivity.class));
-        }
-        else {
+        userLocalStore.setPictures(TIMES);
+        if(userLocalStore.getTimes() <= 2) {
 
             Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             startActivityForResult(cameraIntent, CAMERA_REQUEST);
-            userLocalStore.setPictures(TIMES);
             TIMES++;
+
+           /* Bitmap first = BitmapFactory.decodeResource(this.getResources(),
+                R.drawable.first);
+            databaseHelper.insert(getBytes(first));
+            Bitmap second = BitmapFactory.decodeResource(this.getResources(),
+                R.drawable.second);
+            databaseHelper.insert(getBytes(second));*/
+        }
+        else {
+            startActivity(new Intent(this, ImageActivity.class));
+            DatabaseHelper databaseHelper = new DatabaseHelper(MainActivity.this);
         }
     }
 
@@ -102,7 +85,6 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
     {
         super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
         if(resultCode == RESULT_OK) {
             if(requestCode == CAMERA_REQUEST) {
                 Bitmap camerImage = (Bitmap) data.getExtras().get("data");
